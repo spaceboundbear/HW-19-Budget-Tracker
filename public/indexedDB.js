@@ -1,33 +1,31 @@
 let db;
 
-const req = indexedDB.open('budget', 1);
+const request = indexedDB.open('budget-tracker', 1);
 
-req.onupgradeneeded = (e) => {
+request.onupgradeneeded = (e) => {
   const db = e.target.result;
-  db.createObjectStore('new-tx', { autoIncrement: true });
+
+  if (db.objectStoreNames.length === 0) {
+    db.createObjectStore('storeBudget', { autoIncrement: true });
+  }
 };
 
-req.onsuccess = (e) => {
+request.onsuccess = (e) => {
+  console.log('success');
   db = e.target.result;
   if (navigator.onLine) {
     uploadDb();
   }
 };
 
-req.onerror = (e) => {
+request.onerror = (e) => {
   console.log(e.target.errorCode);
 };
 
-function saveRecord(record) {
-  const transaction = db.transaction(['new-tx'], 'readwrite');
-  const store = transaction.objectStore('new-tx');
-
-  store.add(record);
-}
-
 function uploadDb() {
-  const transaction = db.transaction(['new-tx'], 'readwrite');
-  const store = transaction.objectStore('new-tx');
+  console.log('checking db');
+  let transaction = db.transaction(['storeBudget'], 'readwrite');
+  const store = transaction.objectStore('storeBudget');
   const getAll = store.getAll();
 
   getAll.onsuccess = function () {
@@ -42,10 +40,10 @@ function uploadDb() {
       })
         .then((response) => response.json())
         .then(() => {
-          const transaction = db.transaction(['new-tx'], 'readwrite');
-          const store = transaction.objectStore('new-tx');
+          transaction = db.transaction(['storeBudget'], 'readwrite');
+          const storeC = transaction.objectStore('storeBudget');
 
-          store.clear();
+          storeC.clear();
 
           console.log('saved transactions submitted');
         })
@@ -54,6 +52,14 @@ function uploadDb() {
         });
     }
   };
+}
+
+function saveRecord(record) {
+  console.log('save record executed');
+  const transaction = db.transaction(['storeBudget'], 'readwrite');
+  const store = transaction.objectStore('storeBudget');
+
+  store.add(record);
 }
 
 window.addEventListener('online', uploadDb);
