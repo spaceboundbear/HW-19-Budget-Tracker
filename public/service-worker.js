@@ -3,7 +3,6 @@ const FILES_TO_CACHE = [
   '/index.html',
   '/styles.css',
   '/index.js',
-  '/indexedDB.js',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
   '/manifest.webmanifest',
@@ -63,10 +62,15 @@ self.addEventListener('fetch', function (evt) {
 
     return;
   }
+
   evt.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(evt.request).then((response) => {
-        return response || fetch(evt.request);
+    fetch(evt.request).catch(function () {
+      return caches.match(evt.request).then(function (response) {
+        if (response) {
+          return response;
+        } else if (evt.request.header.get('accept').includes('text/html')) {
+          return caches.match('/');
+        }
       });
     })
   );

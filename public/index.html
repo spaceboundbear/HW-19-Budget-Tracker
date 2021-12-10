@@ -53,16 +53,13 @@
       <canvas id="myChart"></canvas>
     </div>
     <script>
-      (function () {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker
-            .register('/service-worker.js')
-            .then(() => console.log('Service Worker registered successfully!'))
-            .catch((error) =>
-              console.log('Service Worker registration failed:', error)
-            );
-        }
-      })();
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('service-worker.js').then((reg) => {
+            console.log('found service worker', reg);
+          });
+        });
+      }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>

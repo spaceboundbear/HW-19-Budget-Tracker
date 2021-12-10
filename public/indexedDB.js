@@ -1,42 +1,40 @@
 let db;
 
-const req = window.indexedDB.open('budget_tracker', 1);
+const req = indexedDB.open('budget', 1);
 
 req.onupgradeneeded = (e) => {
   const db = e.target.result;
-  db.createObjectStore('new-tx', { keyPath: '_id' });
+  db.createObjectStore('new-tx', { autoIncrement: true });
 };
 
 req.onsuccess = (e) => {
   db = e.target.result;
   if (navigator.onLine) {
     uploadDb();
-  } else {
-    saveRecord();
   }
 };
 
 req.onerror = (e) => {
-  console.log('error');
+  console.log(e.target.errorCode);
 };
 
-function saveRecord(rec) {
+function saveRecord(record) {
   const transaction = db.transaction(['new-tx'], 'readwrite');
   const store = transaction.objectStore('new-tx');
 
-  store.add(rec);
+  store.add(record);
 }
 
 function uploadDb() {
   const transaction = db.transaction(['new-tx'], 'readwrite');
   const store = transaction.objectStore('new-tx');
-  const all = store.getAll();
+  const getAll = store.getAll();
 
-  all.onsuccess = function () {
-    if (all.result.length > 0) {
+  getAll.onsuccess = function () {
+    if (getAll.result.length > 0) {
       fetch('/api/transaction/bulk', {
         method: 'POST',
-        body: JSON.stringify(all.result),
+        body: JSON.stringify(getAll.result),
         headers: {
           Accept: 'application/json, text/plain, */*',
           'Content-Type': 'application/json',
